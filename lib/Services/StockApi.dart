@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class StockApi {
-  final String apiKey = 'ctdl8k1r01qng9gesss0ctdl8k1r01qng9gesssg'; // Replace with your actual Finnhub API key
+  final String apiKey = 'ctdj1s9r01qng9genohgctdj1s9r01qng9genoi0'; // Replace with your actual Finnhub API key
   final String baseUrl = 'https://finnhub.io/api/v1';
 
   // Search stocks based on the query

@@ -1,11 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:proj2/Screens/Home.dart';  // Adjust the path to your home screen
-import 'package:proj2/Screens/RegisterScreen.dart';  // Adjust path if needed
+import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
-
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -13,30 +9,18 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _errorMessage;
+  final _auth = FirebaseAuth.instance;
+  String _errorMessage = '';
 
-  void _login() async {
+  Future<void> _signIn() async {
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-
-      if (email.isNotEmpty && password.isNotEmpty) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()), // Navigate to HomeScreen after login
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Email and password cannot be empty';
-        });
-      }
-    } catch (e) {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = e.message ?? 'Unknown error';
       });
     }
   }
@@ -44,41 +28,35 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: 'Email'),
             ),
             TextField(
               controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
             ),
-            if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
+              onPressed: _signIn,
+              child: Text('Sign In'),
             ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                );
-              },
-              child: const Text('Register Here'),
-            ),
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  _errorMessage,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
           ],
         ),
       ),
