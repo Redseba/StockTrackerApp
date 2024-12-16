@@ -4,71 +4,96 @@ import 'package:proj2/Services/StockApi.dart';
 class StockDetail extends StatefulWidget {
   final String symbol;
 
-  const StockDetail({required this.symbol, super.key});
+  const StockDetail({Key? key, required this.symbol}) : super(key: key);
 
   @override
-  StockDetailState createState() => StockDetailState();
+  _StockDetailState createState() => _StockDetailState();
 }
 
-class StockDetailState extends State<StockDetail> {
-  Map<String, dynamic> _stockDetails = {};
-  bool _isLoading = true;
-  String? _errorMessage;
+class _StockDetailState extends State<StockDetail> {
+  late Future<Map<String, dynamic>> _stockDetails;
 
   @override
   void initState() {
     super.initState();
-    _loadStockDetails();
-  }
-
-  Future<void> _loadStockDetails() async {
-    try {
-      final details = await StockApi().getStockDetail(widget.symbol);
-      setState(() {
-        _stockDetails = details;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Failed to load stock details";
-        _isLoading = false;
-      });
-    }
+    // Fetch stock details when the screen is initialized
+    _stockDetails = StockApi().getStockDetail(widget.symbol);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: Text(widget.symbol)),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.symbol),
+        backgroundColor: Colors.black,
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _stockDetails,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('No stock details available'));
+          } else {
+            final stock = snapshot.data!;
 
-    if (_errorMessage != null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(widget.symbol)),
-        body: Center(child: Text(_errorMessage!)),
-      );
-    }
+            // Extract the details from the response
+            final double? price = stock['c'];
+            final double? change = stock['dp'];
+            final double? high = stock['h'];
+            final double? low = stock['l'];
+            final double? open = stock['o'];
+            final double? previousClose = stock['pc'];
 
-return Scaffold(
-  appBar: AppBar(title: Text(widget.symbol)),
-  body: Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      children: [
-        Text('Stock: ${widget.symbol}'),
-        Text('Current Price: \$${_stockDetails['c']?.toString() ?? 'N/A'}'),
-        Text('High Price: \$${_stockDetails['h']?.toString() ?? 'N/A'}'),
-        Text('Low Price: \$${_stockDetails['l']?.toString() ?? 'N/A'}'),
-        Text('Open Price: \$${_stockDetails['o']?.toString() ?? 'N/A'}'),
-        Text('Previous Close Price: \$${_stockDetails['pc']?.toString() ?? 'N/A'}'),
-        Text('Percentage Change: \$${_stockDetails['dp']?.toString() ?? 'N/A'}'),
-      ],
-    ),
-  ),
-);
+            // Determine the change percentage color
+            final isPositive = (change ?? 0) > 0;
 
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Current Price: \$${price?.toStringAsFixed(2) ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Change: ${change?.toStringAsFixed(2)}%',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: isPositive ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'High: \$${high?.toStringAsFixed(2) ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Low: \$${low?.toStringAsFixed(2) ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Open: \$${open?.toStringAsFixed(2) ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Previous Close: \$${previousClose?.toStringAsFixed(2) ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 }

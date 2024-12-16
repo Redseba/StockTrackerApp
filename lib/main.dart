@@ -15,25 +15,37 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Stock App',
-      home: AuthWrapper(),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white),
+        ),
+      ),
+      home: const AuthWrapper(),
     );
   }
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          return HomeScreen();  // If logged in, show HomeScreen
+          return const HomeScreen();  // If logged in, show HomeScreen
         } else {
           return LoginScreen();  // If not logged in, show LoginScreen
         }
@@ -43,6 +55,8 @@ class AuthWrapper extends StatelessWidget {
 }
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -82,12 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Search Stocks')),
+      appBar: AppBar(title: const Text('Search Stocks')),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
               child: Text(
                 'Menu',
@@ -95,15 +109,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
               onTap: () {
                 Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
-              leading: Icon(Icons.favorite),
-              title: Text('Watchlist'),
+              leading: const Icon(Icons.favorite),
+              title: const Text('Watchlist'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -113,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             // Added navigation to the News Feed screen
             ListTile(
-              leading: Icon(Icons.article),
-              title: Text('News Feed'),
+              leading: const Icon(Icons.article),
+              title: const Text('News Feed'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -123,8 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Log Out'),
+              leading: const Icon(Icons.logout),
+              title: const Text('Log Out'),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
                 Navigator.pushReplacement(
@@ -142,21 +156,41 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             TextField(
               controller: _controller,
-              decoration: InputDecoration(labelText: 'Search for stocks'),
+              decoration: const InputDecoration(
+                labelText: 'Search for stocks',
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
+              style: const TextStyle(color: Colors.white),
             ),
             ElevatedButton(
               onPressed: _searchStocks,
-              child: Text('Search'),
+              child: const Text('Search'),
             ),
             Expanded(
               child: ListView.builder(
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   final stock = _searchResults[index];
+                  final double? percentageChange = stock['dp'];
+                  final bool isPositive = (percentageChange ?? 0) > 0;
+
                   return ListTile(
-                    title: Text(stock['description'] ?? stock['symbol']),
+                    title: Text(
+                      stock['description'] ?? stock['symbol'],
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      stock['symbol'],
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     trailing: IconButton(
-                      icon: Icon(Icons.favorite_border),
+                      icon: Icon(
+                        Icons.favorite_border,
+                        color: isPositive ? Colors.green : Colors.red,
+                      ),
                       onPressed: () => _addToWatchlist(stock),
                     ),
                     onTap: () {

@@ -1,34 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:proj2/Screens/Home.dart';  // Adjust the path to your home screen
-import 'package:proj2/Screens/RegisterScreen.dart';  // Adjust path if needed
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _errorMessage;
 
-  void _login() async {
+  void _register() async {
     try {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
       if (email.isNotEmpty && password.isNotEmpty) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()), // Navigate to HomeScreen after login
-        );
+        Navigator.pop(context); // Return to the login screen after success
       } else {
         setState(() {
           _errorMessage = 'Email and password cannot be empty';
@@ -44,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -66,18 +61,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
+              onPressed: _register,
+              child: const Text('Register'),
             ),
             const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                );
+                Navigator.pop(context); // Go back to login screen
               },
-              child: const Text('Register Here'),
+              child: const Text('Already have an account? Login here'),
             ),
           ],
         ),
